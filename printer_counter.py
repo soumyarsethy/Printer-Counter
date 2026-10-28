@@ -50,16 +50,31 @@ class AutoDiscoverUSBDialog(tk.Toplevel):
     """Dedicated interactive Auto-Discovery dialog for USB Printers."""
     def __init__(self, parent, on_imported_callback=None):
         super().__init__(parent)
+        self.parent = parent
         self.title("Auto-Discover USB Printers - " + get_developer_credit())
         self.geometry("820x500")
         self.minsize(700, 400)
-        self.transient(parent)
-        self.grab_set()
+        
+        # Safe modal behavior that prevents Windows taskbar deadlock (Bug #114422)
+        try:
+            self.parent.attributes("-disabled", True)
+        except Exception:
+            pass
+        self.protocol("WM_DELETE_WINDOW", self.close_dialog)
 
         self.on_imported_callback = on_imported_callback
         self.discovered_list = []
         self.setup_ui()
         self.start_usb_scan()
+
+    def close_dialog(self):
+        try:
+            self.parent.attributes("-disabled", False)
+            self.parent.lift()
+            self.parent.focus_force()
+        except Exception:
+            pass
+        self.destroy()
 
     def setup_ui(self):
         # Header
@@ -168,7 +183,7 @@ class AutoDiscoverUSBDialog(tk.Toplevel):
             self.on_imported_callback()
 
         messagebox.showinfo("Success", f"Imported/Synchronized {len(to_add)} USB printers into active fleet!", parent=self)
-        self.destroy()
+        self.close_dialog()
 
 
 class AutoDiscoverNetworkDialog(tk.Toplevel):
@@ -178,12 +193,25 @@ class AutoDiscoverNetworkDialog(tk.Toplevel):
         self.title("Auto-Discover Network Printers - " + get_developer_credit())
         self.geometry("860x540")
         self.minsize(740, 420)
-        self.transient(parent)
-        self.grab_set()
+        # Safe modal behavior that prevents Windows taskbar deadlock (Bug #114422)
+        try:
+            self.parent.attributes("-disabled", True)
+        except Exception:
+            pass
+        self.protocol("WM_DELETE_WINDOW", self.close_dialog)
 
         self.on_imported_callback = on_imported_callback
         self.discovered_list = []
         self.setup_ui()
+
+    def close_dialog(self):
+        try:
+            self.parent.attributes("-disabled", False)
+            self.parent.lift()
+            self.parent.focus_force()
+        except Exception:
+            pass
+        self.destroy()
 
     def setup_ui(self):
         # Header
@@ -351,22 +379,37 @@ class AutoDiscoverNetworkDialog(tk.Toplevel):
             self.on_imported_callback()
 
         messagebox.showinfo("Success", f"Imported {added} network printers into your active fleet!", parent=self)
-        self.destroy()
+        self.close_dialog()
 
 
 class AddNetworkPrinterDialog(tk.Toplevel):
     """Modal dialog to add or edit a Network printer manually."""
     def __init__(self, parent, printer_data=None, on_save_callback=None):
         super().__init__(parent)
+        self.parent = parent
         self.title("Edit Network Printer" if printer_data else "Add New Network Printer")
         self.geometry("480x420")
         self.resizable(False, False)
-        self.transient(parent)
-        self.grab_set()
+
+        # Safe modal behavior that prevents Windows taskbar deadlock (Bug #114422)
+        try:
+            self.parent.attributes("-disabled", True)
+        except Exception:
+            pass
+        self.protocol("WM_DELETE_WINDOW", self.close_dialog)
 
         self.printer_data = printer_data or {}
         self.on_save_callback = on_save_callback
         self.setup_ui()
+
+    def close_dialog(self):
+        try:
+            self.parent.attributes("-disabled", False)
+            self.parent.lift()
+            self.parent.focus_force()
+        except Exception:
+            pass
+        self.destroy()
 
     def setup_ui(self):
         pad_opts = {'padx': 12, 'pady': 6}
@@ -450,7 +493,7 @@ class AddNetworkPrinterDialog(tk.Toplevel):
         Database.save_network_printer(data)
         if self.on_save_callback:
             self.on_save_callback()
-        self.destroy()
+        self.close_dialog()
 
 
 class UpdateUSBMeterDialog(tk.Toplevel):
@@ -460,12 +503,25 @@ class UpdateUSBMeterDialog(tk.Toplevel):
         self.title(f"Update USB Meter - {printer_data['name']}")
         self.geometry("450x360")
         self.resizable(False, False)
-        self.transient(parent)
-        self.grab_set()
+        # Safe modal behavior that prevents Windows taskbar deadlock (Bug #114422)
+        try:
+            self.parent.attributes("-disabled", True)
+        except Exception:
+            pass
+        self.protocol("WM_DELETE_WINDOW", self.close_dialog)
 
         self.printer_data = printer_data
         self.on_save_callback = on_save_callback
         self.setup_ui()
+
+    def close_dialog(self):
+        try:
+            self.parent.attributes("-disabled", False)
+            self.parent.lift()
+            self.parent.focus_force()
+        except Exception:
+            pass
+        self.destroy()
 
     def setup_ui(self):
         frame = ttk.Frame(self, padding="16")
@@ -520,7 +576,7 @@ class UpdateUSBMeterDialog(tk.Toplevel):
         )
         if self.on_save_callback:
             self.on_save_callback()
-        self.destroy()
+        self.close_dialog()
 
 
 class PrinterCounterApp:
@@ -529,6 +585,11 @@ class PrinterCounterApp:
         self.root.title(f"{APP_NAME} v{APP_VERSION} - {get_developer_credit()}")
         self.root.geometry("1150x700")
         self.root.minsize(1000, 620)
+        self.root.resizable(True, True)
+
+        # Window state management & restore hooks for Windows Taskbar
+        self.root.bind("<Map>", self._on_window_map)
+        self.root.bind("<F11>", self.toggle_maximize)
 
         self.queue = queue.Queue()
 
@@ -547,6 +608,19 @@ class PrinterCounterApp:
         self.load_network_table()
 
         self.root.after(100, self.process_queue)
+
+    def _on_window_map(self, event):
+        if event.widget == self.root:
+            self.root.update_idletasks()
+
+    def toggle_maximize(self, event=None):
+        try:
+            if self.root.state() == "zoomed":
+                self.root.state("normal")
+            else:
+                self.root.state("zoomed")
+        except Exception:
+            pass
 
     def setup_styles(self):
         style = ttk.Style()
@@ -576,6 +650,10 @@ class PrinterCounterApp:
         lbl_title = tk.Label(hdr_frame, text=APP_NAME.upper(), font=("Segoe UI", 12, "bold"), bg="#0f172a", fg="white")
         lbl_title.pack(side=tk.LEFT, pady=10)
 
+        # Allow double-clicking header to toggle Maximize / Restore
+        hdr_frame.bind("<Double-Button-1>", self.toggle_maximize)
+        lbl_title.bind("<Double-Button-1>", self.toggle_maximize)
+
         # Version Badge
         lbl_ver = tk.Label(hdr_frame, text=f"v{APP_VERSION}", font=("Segoe UI", 9, "bold"), bg="#2563eb", fg="white", padx=6, pady=1)
         lbl_ver.pack(side=tk.LEFT, padx=6, pady=12)
@@ -586,6 +664,14 @@ class PrinterCounterApp:
 
         self.lbl_status = tk.Label(hdr_frame, text="Ready", font=("Segoe UI", 9, "bold"), bg="#0f172a", fg="#4ade80")
         self.lbl_status.pack(side=tk.RIGHT, padx=16, pady=10)
+
+        # Explicit Maximize/Restore Button in Header Bar
+        btn_max = tk.Button(
+            hdr_frame, text="🗖 Maximize / Restore", font=("Segoe UI", 8, "bold"),
+            bg="#1e293b", fg="#e2e8f0", activebackground="#334155", activeforeground="white",
+            relief="solid", bd=1, padx=8, pady=2, cursor="hand2", command=self.toggle_maximize
+        )
+        btn_max.pack(side=tk.RIGHT, padx=4, pady=10)
 
         # Notebook Tabs
         self.notebook = ttk.Notebook(self.root)

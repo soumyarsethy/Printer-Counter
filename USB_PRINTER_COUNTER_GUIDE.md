@@ -1,7 +1,7 @@
 # 🖨️ Printer Counter — Complete Software Architecture & User Guide
 
 **Application Name:** Printer Counter  
-**Version:** `v2.2.1 (Auto-Discovery Dual Fleet Edition)`  
+**Version:** `v2.2.2 (Auto-Discovery Dual Fleet Edition)`  
 **Developer:** **Soumya Ranjan Sethy**  
 **Release Date:** 2026-10-28  
 **Supported Platforms:** Windows 10, Windows 11, Windows Server (32-bit & 64-bit)  

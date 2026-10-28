@@ -4,12 +4,24 @@ Developed by Soumya Ranjan Sethy
 """
 
 APP_NAME = "Printer Counter"
-APP_VERSION = "2.2.1"
+APP_VERSION = "2.2.2"
 APP_EDITION = "Auto-Discovery Dual Fleet Edition"
 APP_RELEASE_DATE = "2026-10-28"
 APP_DEVELOPER = "Soumya Ranjan Sethy"
 
 CHANGELOG = [
+    {
+        "version": "2.2.2",
+        "date": "2026-10-28",
+        "title": "Window Minimize, Restore & Maximize Controls Fix",
+        "changes": [
+            "Fixed window restore deadlock on Windows Taskbar caused by modal grab_set() interactions.",
+            "Added explicit resizable(True, True) and <Map> state synchronization hooks for Windows 10/11.",
+            "Added top header Maximize / Restore button, double-click header toggle, and F11 keyboard shortcut.",
+            "Upgraded PrinterCounter.exe launcher with single-instance detection to auto-restore and focus minimized instances.",
+            "Maintained developer credit: 'Developed by Soumya Ranjan Sethy'."
+        ]
+    },
     {
         "version": "2.2.1",
         "date": "2026-10-28",

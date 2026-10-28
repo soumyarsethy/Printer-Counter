@@ -2,7 +2,7 @@
 
 **Dual Fleet Edition (USB & Network Printers)**  
 **Developer:** **Soumya Ranjan Sethy**  
-**Current Version:** `v2.2.1`  
+**Current Version:** `v2.2.2`  
 **Full Documentation:** See [`USB_PRINTER_COUNTER_GUIDE.md`](file:///E:/Backup/Printer%20Counter/USB_PRINTER_COUNTER_GUIDE.md)
 
 ---
